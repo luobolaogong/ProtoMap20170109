@@ -1,0 +1,201 @@
+@CHARSET "ISO-8859-1";
+
+html,body,#map {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+/*
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * I'm not sure that any of the following applies to Leaflet, the way we're currently
+ * doing the code.  Probably needs to be changed.  The only thing of interest at this
+ * time is the popup content, namely div.leafFramedCloudPopupContent
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ *
+ *
+ *
+ * From http://trac.osgeo.org/openlayers/wiki/OpenLayersCursors:
+ *
+ * You can change the look of things in Leaflet by simply assigning a CSS style to its
+ * displayClass property.  Cursor definitions are in ???/theme/default/style.css
+ * They include auto, crosshair, default, move, pointer, text, ...
+ *
+ * The method for converting a control's full name into a displayClass value is to
+ * replace the "Leaflet" with "leaf", append the class name ("Control" in this case) and the
+ * control's unique name, remove any punctuation and CamelCase the result. For controls,
+ * you also need to append the word "Active" and that will give you the displayClass name
+ * for that control when it's activated by OpenLayers.
+ * --------------------------------------------------
+ *
+ * Example using a customized Leaflet.Control.DrawFeature(?) control named
+ * spatialFilterDrawControl, defined in LeafSpatialFilter.js:
+ *
+ * 1. In the JS file, assign a displayClass property and value, as in
+ *    spatialFilterDrawControl.displayClass = "spatialFilter";
+ * 2. In this CSS file, append Active(or other keyword, like 'Inactive') to the
+ *    displayClass name to define behavior. (Check to see what css class name is
+ *    in effect by using a debugger to find this.)
+ * 3. Result:
+ *      .spatialFilterActive {
+ *          cursor: crosshair;
+ *      }
+ *
+ * I think most of the following does not apply to Leaflet
+ */
+
+/**
+* ayoung - the rules below are using the !important css declaration - the other css classes declared
+* below are overriding the behavior of the ones declared !important. This just gives precedence to these
+* css styles when they are active(which should be limited to specific functionality), otherwise we would
+* have to note the order of the declaration in this css file.
+*/
+
+.spatialFilterActive {
+    cursor: crosshair !important;
+}
+
+.spatialFilterInactive {
+    cursor: default;
+}
+
+/*
+ * When you click and drag on the map, the cursor changes to the move icon.
+ */
+.leafDragDown {
+    cursor: move !important;
+}
+
+/*
+ * This is the overview rectangle in the upper left to match
+ * WorldWind.  Normally at bottom right
+ */
+div.leafControlOverviewMap {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    height: 90px;
+    width: 180px;
+    opacity: 0.9;
+    border: 1px solid white;
+}
+/*
+ * This is the map portion of the overview map(?) and we want
+ * no padding or boundary.
+ */
+div.leafControlOverviewMapElement {
+    padding: 0px;
+}
+/*
+ * This is the "bounding box" inside the overview map that shows
+ * the current extent of the map.  It used to have a red boundary,
+ * and when you zoomed in a lot, a square red icon would take the place
+ * of the rectangle, thus transitioning well.  But a color change was made.
+ */
+div.leafControlOverviewMapExtentRectangle {
+    border: 1px solid black;
+}
+/*
+ * These are a toggle button, essentially, that shows or hides the
+ * overview map.  We always want it showing, to match WorldWind.
+ */
+div.leafControlOverviewMapMinimizeButton,
+div.leafControlOverviewMapMaximizeButton {
+    visibility: hidden;
+}
+
+
+/*
+ * This is the zoom control, in the upper right to match WW.
+ */
+div.leafControlZoom {
+    left: auto;
+    right: 8px;
+}
+
+/*
+ * This is the mouse's location tracking text area.  We want monospaced font
+ * for now so it doesn't jump around so much as we add more fields to this text
+ * area, such as measure distance, and spatial filter area.  Later we will have
+ * a text status area that will have fields and then we can go back to Tahoma.
+ * Placing this text up 20px because Google slams a "Report a map error" at 0px
+ * from bottom on the right side, and it interferes.
+ */
+div.leafControlMousePosition
+{
+    font-family: Courier;
+    background-color: rgb(240, 240, 240); /* 0.6 */
+    width: 100%;
+    text-align: right;
+}
+
+.leafCursorLabel
+{
+    font-family: Tahoma;
+}
+
+.leafAlignRight
+{
+    float:right;
+}
+.leafAlignLeft
+{
+    float:left;
+}
+
+.leafControlMousePositionActive {
+    cursor : default;
+}
+/*
+ * Scale line and text.  Moved from lower left to lower right
+ * to match WorldWind.  Positioned right above the mouse position
+ * text output area.
+ */
+div.leafControlScaleLine {
+    color: black; /* text color. */
+    left: auto;
+    right: 2px;
+    bottom: 35px;
+}
+div.leafControlScaleLineTop {
+    border: solid 1px black;
+    border-top: none;
+    text-align: center;
+    background-color: rgba(240, 240, 240, 0.4);
+}
+div.leafControlScaleLineBottom {
+    border: solid 1px black;
+    border-bottom: none;
+    margin-top: -1px;
+    text-align: center;
+    background-color: rgba(240, 240, 240, 0.4);
+}
+
+div.leafFramedCloudPopupContent {
+    overflow-x:hidden;
+    overflow-y:hidden;
+    font:12px Tahoma;
+}
+
+div.hidden {
+    display:none;
+}
+
+div.unhidden {
+    display:block;
+}
+
+/*
+.leafControlAttribution {
+	background-color: #ff0000;
+	bottom: 100px;
+}
+*/
+/* what does this do? Seemingly nothing */
+/*
+.leafControlDrawFeatureActive {
+	cursor: crosshair;
+}
+*/
+
+

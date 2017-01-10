@@ -1,0 +1,6 @@
+D:/Google/closure-library/closure/goog/base.js
+D:/Leaflet/Leaflet_1.0-dev/leaflet-src.js
+D:/Leaflet/plugins/Markers/MarkerCluster/leaflet.markercluster-src.js
+D:/Leaflet/plugins/Controls/Loading/Control.Loading.js
+D:/Leaflet/plugins/Controls/MiniMap/Control.MiniMap.js
+D:/Leaflet/plugins/Markers/Label/leaflet.label-src.js

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script src='closure-library/closure/goog/base.js'></script>
+        <script src='leaf/Network.js'></script>
+        <title>Title</title>
+    </head>
+    <body onload='test()'>
+    <script>
+        /**
+         * This function is only needed for testing.  It gets execute only after all files have been
+         * loaded.  It is called from within LayerWithClosure.html, due to onload in the body.
+         * This is only used when outside MSAT.  So, comment this out when in MSAT.
+         */
+        function test() {
+            var network = new leaf.Network();
+            network.main();
+        }
+        <!--<script src='ImageLoader.js'>-->
+        <!--console.log("In the script tag in ImageLoader.html");-->
+        <!--</script>-->
+     </body>
+</html>

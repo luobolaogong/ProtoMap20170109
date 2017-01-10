@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!--
+This stuff has a counterpart in MSAT in msat-portlet/web/WEB-INF/jsp/LeafMap.jsp
+And also in msat-portlet/src/com/akimeka/web/server/map/LeafMapServlet.java
+-->
+<html>
+<head>
+    <script src='closure-library/closure/goog/base.js'></script>
+    <script src='closure-library/closure/goog/html/utils.js'></script>
+
+    <link rel="stylesheet" href="closure-library/closure/goog/demos/css/demo.css">
+    <link rel="stylesheet" href="closure-library/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="closure-library/closure/goog/css/menuitem.css">
+    <link rel="stylesheet" href="closure-library/closure/goog/css/menuseparator.css">
+    <link rel="stylesheet" href="closure-library/closure/goog/css/toolbar.css">
+
+    <!-- When comparing to the MSAT version, be sure to update LeafMap.jsp for the plugins CSS files, and somewhere else for the plugins JS files -->
+
+    <!--Remember that the measure tool, and probably other plugins have to change when changing from 0.7.7-->
+    <!--<link rel='stylesheet' href='Leaflet_1.0.2/leaflet.css' />-->
+    <!--<script src='Leaflet_1.0.2/leaflet-src.js'></script>-->
+    <link rel='stylesheet' href='Leaflet_0.7.7/leaflet.css' />
+    <script src='Leaflet_0.7.7/leaflet-src.js'></script>
+
+    <link rel="stylesheet" href="libs/Leaflet.draw-0.2.4/dist/leaflet.draw.css" />
+    <script src="libs/Leaflet.draw-0.2.4/dist/leaflet.draw-src.js"></script>
+
+    <link rel='stylesheet' href='libs/Leaflet.markercluster-leaflet-0.7/dist/MarkerCluster.css' />
+    <link rel='stylesheet' href='libs/Leaflet.markercluster-leaflet-0.7/dist/MarkerCluster.Default.css' />
+    <script src='libs/Leaflet.markercluster-leaflet-0.7/dist/leaflet.markercluster-src.js' type='text/javascript'></script>
+
+    <!--See https://github.com/Norkart/Leaflet-MiniMap-->
+    <link rel='stylesheet' href='libs/Leaflet-MiniMap-3.3.1/dist/Control.MiniMap.min.css' />
+    <script src='libs/Leaflet-MiniMap-3.3.1/dist/Control.MiniMap.min.js' type='text/javascript'></script>
+
+    <!--See https://github.com/ebrelsford/Leaflet.loading-->
+    <link rel='stylesheet' href='libs/Leaflet.loading-0.1.23/src/Control.Loading.css' />
+    <script src='libs/Leaflet.loading-0.1.23/src/Control.Loading.js' type='text/javascript'></script>
+
+    <!--See https://github.com/davidchouse/Leaflet.NavBar-->
+    <link rel='stylesheet' href='libs/Leaflet.NavBar-1.0.0/src/Leaflet.NavBar.css' />
+    <script src='libs/Leaflet.NavBar-1.0.0/src/Leaflet.NavBar.js' type='text/javascript'></script>
+
+    <!--Leaflet-Measure   See https://github.com/ljagis/leaflet-measure/tree/2.0.5 -->
+    <!--<link rel='stylesheet' href='libs/leaflet-measure-2.0.5/dist/leaflet-measure.css' />-->
+    <!--<script src='libs/leaflet-measure-2.0.5/dist/leaflet-measure.js' type='text/javascript'></script>-->
+
+    <!--This next one is just a simple linear measure tool, extended from Leaflet.Draw's polyline, use until something better is put together.  Draw required. -->
+    <!--See https://github.com/makinacorpus/Leaflet.MeasureControl/tree/1.1.0-->
+    <!--Also, needed to copy the images directory out of docs to make the icon available.  Strange.-->
+    <!--<link rel='stylesheet' href='libs/Leaflet.MeasureControl-1.1.0/leaflet.measurecontrol.css' />-->
+    <!--<script src='libs/Leaflet.MeasureControl-1.1.0/leaflet.measurecontrol.js' type='text/javascript'></script>-->
+    <!--<link rel='stylesheet' href='libs/leaflet.measure-master/leaflet.measure/leaflet.measure.css' />-->
+    <!--<script src='libs/leaflet.measure-master/leaflet.measure/leaflet.measure.js' type='text/javascript'></script>-->
+
+    <!--Leaflet.Coordinates-->
+    <!--<link rel='stylesheet' href='libs/Leaflet.Coordinates-0.1.5/dist/Leaflet.Coordinates-0.1.5.css' />-->
+    <!--<link rel='stylesheet' href='libs/Leaflet.Coordinates-0.1.5/dist/Leaflet.Coordinates-0.1.5.ie.css' />-->
+    <!--<script src='libs/Leaflet.Coordinates-0.1.5/dist/Leaflet.Coordinates-0.1.5.src.js' type='text/javascript'></script>-->
+
+    <!--leaflet.mouseCoordinate-1.2.0-->
+    <!--<link rel='stylesheet' href='libs/leaflet.mouseCoordinate-1.2.0/dist/leaflet.mousecoordinate.css' />-->
+    <!--<script src='libs/leaflet.mouseCoordinate-1.2.0/dist/leaflet.mousecoordinate.js' type='text/javascript'></script>-->
+
+    <!--Leaflet.MousePosition-master-->
+    <!--<link rel='stylesheet' href='libs/Leaflet.MousePosition-master/src/MousePositionControl.css' />-->
+    <!--<script src='libs/Leaflet.MousePosition-master/src/L.Control.MousePosition.js' type='text/javascript'></script>-->
+
+
+
+
+    <!--This one doesn't work for me, perhaps because it's for 1.0?  Doesn't know about "map.on"-->
+    <!--<link rel='stylesheet' href='libs/leaflet.mouseCoordinate-1.2.0/dist/leaflet.mousecoordinate.css' />-->
+    <!--<script src='libs/leaflet.mouseCoordinate-1.2.0/dist/leaflet.mousecoordinate.js' type='text/javascript'></script>-->
+
+
+    <!--Not sure this is actually helping.  Currently not.  Not sure why.  WMS?-->
+    <!--<script src='plugins/PouchDBCached/pouchdb.js' type='text/javascript'></script>-->
+    <!--<script src='plugins/PouchDBCached/L.TileLayer.PouchDBCached.js' type='text/javascript'></script>-->
+
+    <!--See https://github.com/Leaflet/Leaflet.label - this one might be for Leaflet 0.7.x and not 1.0.x -->
+    <link rel='stylesheet' href='libs/Leaflet.label-master/dist/leaflet.label.css' />
+    <script src='libs/Leaflet.label-master/dist/leaflet.label-src.js' type='text/javascript'></script>
+
+    <!--<link rel="stylesheet" href="libs/leaflet-measure-path-1.1.0/leaflet-measure-path.css" />-->
+    <!--<script src="libs/leaflet-measure-path-1.1.0/leaflet-measure-path.js"></script>-->
+
+
+    <script src='leaf/Settings.js'></script>
+
+    <link rel='stylesheet' href='css/LeafMap.css' /> <!-- currently only need for popup hidden stuff -->
+    <link rel='stylesheet' href='css/leaflet.measure.css' />
+    <script src='leaf/MeasureTool.js'></script>
+    <link rel='stylesheet' href='css/MousePositionControl.css' />
+    <script src='leaf/MousePositionControl.js'></script>
+
+
+    <script src='test/data/CalloutsData.js'></script>
+    <script src='test/data/Callouts2.js'></script>
+    <script src='test/data/FacilitiesData.js'></script>
+    <script src='test/data/LayersData.js'></script>
+    <script src='test/data/MedicalLibraryData.js'></script>
+    <script src='test/data/PopulationData.js'></script>
+    <script src='test/data/PlumeData.js'></script>
+    <script src='test/data/SyndromicSurveilanceData.js'></script>
+
+    <script src='libs/usng.js'></script>
+
+    <script src='leaf/Network.js'></script>
+    <script src='leaf/Legend.js'></script>
+    <script src='leaf/Legends.js'></script>
+    <script src='leaf/Controls.js'></script>
+    <script src='leaf/Plume.js'></script>
+    <script src='leaf/Plumes.js'></script>
+    <script src='leaf/Location.js'></script>
+    <script src='leaf/Locations.js'></script>
+    <script src='leaf/Marker.js'></script>
+    <script src='leaf/Markers.js'></script>
+    <script src='leaf/Callout.js'></script>
+    <!--<script src='leaf/Feature.js'></script>-->
+    <script src='leaf/Features.js'></script>
+    <script src='leaf/Layer.js'></script>
+    <script src='leaf/Layers.js'></script>
+    <script src='leaf/SpatialFilter.js'></script>
+    <!--<script src='leaf/MeasureTool.js'></script>-->
+    <script src='leaf/Map.js'></script>
+    <!--<script src='leaf/Toolbar.js'></script>-->
+    <script src='leaf/Popup.js'></script>
+    <script src='LeafletMapImpl.js'></script>
+    <!--<script src='MsatLeaflet.js'></script>-->
+
+    <script src='test/GwtSim/Toolbar.js'></script>
+    <script src='test/GwtSim/PopulationCounts.js'></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+        }
+    </style>
+
+</head>
+<body onload='test()'>
+<div id='map'></div>
+<div id="toolbar"></div>
+<script>
+    //var toolbar = new testGwtSim.Toolbar();
+    /**
+     * This function is only needed for testing.  It gets execute only after all files have been
+     * loaded.  It is called from within LayerWithClosure.html, due to onload in the body.
+     * This is only used when outside MSAT.  So, comment this out when in MSAT.
+     */
+    function test() {
+        //
+        // TODO: Fix the following, because shouldn't have to have this global set like this.
+        // and where else is this global used?
+        // And can we get away from that "entry point" thing that's currently in LeafletMapImpl.js?
+        // It doesn't belong there, if it's needed, and hopefully it is not needed, and can be done
+        // in a different manner.
+        leaf.map = new leaf.Map();
+        var toolbar = new testGwtSim.Toolbar();
+
+//        //
+//        // communication goes through LeafletMapImpl.js, so for testing use it.
+
+//        // Wow, and we can also create other classes outside!  Public constructors! Protected? Private?
+////        var plumesResultsString = goog.json.serialize(testData.PlumeData);
+////        LeafletMapImpl.setResults(plumesResultsString); // This will also wipe out any previously created markers, unless append is set.
+//        var resultsString = goog.json.serialize(testData.CalloutsData);
+//        LeafletMapImpl.setResults(resultsString); // This will also wipe out any previously created markers, unless append is set.
+//        LeafletMapImpl.activateAppendResults();
+//        resultsString = goog.json.serialize(testData.Callouts2);
+//        LeafletMapImpl.setResults(resultsString); // This will also wipe out any previously created markers, unless append is set.
+//        resultsString = goog.json.serialize(testData.FacilitiesData);
+//        LeafletMapImpl.setResults(resultsString); // This will also wipe out any previously created markers, unless append is set.
+//        resultsString = goog.json.serialize(testData.SyndromicSurveilanceData);
+//        LeafletMapImpl.setResults(resultsString); // This will also wipe out any previously created markers, unless append is set.
+//        LeafletMapImpl.deactivateAppendResults();
+//        //LeafletMapImpl.setResults(resultsString); // This will also wipe out any previously created markers, unless append is set.
+
+//        LeafletMapImpl.setFilter(LeafletMapImpl.Filters.SPATIAL_FILTER, null, null); // Simulates button pressed
+//        // wish there was a way to sleep for 3 seconds while draw a bbox here.  Look into goog.net.XhrIo?
+//        leaf.map.spatialFilter.setCentroid(L.latLng(12.34, 56.78));  // this is just for testing getCentroid
+//        var duhCentroid = LeafletMapImpl.getCentroid();
+//        leaf.map.spatialFilter.setGeometry(L.latLngBounds([1,2],[3,4])); // wrong of course
+//        var duhGeometry = LeafletMapImpl.getGeometry();
+//        var duhAreaSqMiles = LeafletMapImpl.getSpatialFilterAreaInSquareMiles();
+//        LeafletMapImpl.setFilter(LeafletMapImpl.Filters.SPATIAL_PLUS, null, null); // Simulates button unpressed
+//
+//        LeafletMapImpl.setFilter(LeafletMapImpl.Filters.SPATIAL_FILTER, null, null); // Simulates button pressed
+
+
+
+        //LeafletMapImpl.resetView();
+
+        //LeafletMapImpl.locateCoordinate("-91, 359");
+//        LeafletMapImpl.locateCoordinate("3,3");
+//        LeafletMapImpl.locateCoordinate("31.50,65.84");
+        LeafletMapImpl.locateCoordinate('12.6869N, 100.8991E'); // satthahip
+        //LeafletMapImpl.zoomToLocation(2,2, "Two,Two"); // test
+        //LeafletMapImpl.zoomToLocation(91,181, "89, neg 179"); // test
+        LeafletMapImpl.zoomToLocation(20.748003, -156.435573, 'Water Tank');
+//        LeafletMapImpl.zoomToLocation(13.7563, 100.5018, 'Bangkok');
+
+//        LeafletMapImpl.clearResults(); // Clears markers and plumes, and probably locations now too
+
+        // leaf.MapImpl.toggleLayer('gwt-uid-8', true); // mgrs grid
+        // leaf.MapImpl.toggleLayer('gwt-uid-9', true); // mgrs labels
+
+        console.log('Done with test.  Leaving MsatLeaflet.html.script');
+    }
+</script>
+</body>
+</html>

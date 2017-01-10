@@ -1,0 +1,318 @@
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'js'
+apply from:   "${rootDir}/gradle/jasper.gradle"
+
+description 'MSAT: Portlet'
+archivesBaseName = 'msat-portlet'
+
+webAppDirName = 'web/'
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/']
+        resources {
+            srcDirs = ['src/']
+            exclude '**/*.html'
+        }
+    }
+    test.java.srcDir 'src-test'
+}
+
+configurations.create 'jsLib'
+
+dependencies {
+    providedCompile project( path:':framework:msat-ejb', configuration:'msaCommon')
+    providedCompile project(':msat:msat_business')
+    providedCompile 'com.google.gwt:gwt-user:2.5.0'
+    providedCompile 'com.sencha.gxt:gxt:3.0.4'
+    providedCompile 'com.thoughtworks.xstream:xstream:1.3.1'
+    providedCompile 'com.vividsolutions:jts:1.9'
+    providedCompile 'commons-fileupload:commons-fileupload:1.2.1'
+    providedCompile 'jfree:jfreechart:1.0.5'
+    providedCompile 'org.jdom:jdom:1.1.1'
+
+    providedRuntime 'com.google.gwt:gwt-servlet:2.5.0'
+
+    providedJspCompile  jboss.jstl
+
+    testCompile libs.junit
+
+    jsLib 'com.google:closure-library:20160619@zip'
+    jsLib 'com.leafletjs:leaflet:0.7.7@zip'
+    
+    //
+    // Don't forget to check out def JsLibResources below,
+    // add to LeafMap.jsp for the CSS files !!!!!!!!!!!
+    //
+    
+    // leaflet plugins Without Artifactory, for quicker testing of plugins not in Artifactory
+    //    jsLib files('Leaflet.Coordinates-0.1.5.zip')
+    //    jsLib files('Leaflet.draw-0.2.4.zip')
+    //    jsLib files('Leaflet.label-master.zip')
+    //    jsLib files('Leaflet.loading-0.1.23.zip')
+    //    jsLib files('Leaflet.markercluster-leaflet-0.7.zip')
+    ////    jsLib files('leaflet-measure-2.0.5.zip')
+    //    jsLib files('Leaflet-MiniMap-3.3.1.zip')
+    //    jsLib files('Leaflet.NavBar-1.0.0.zip')
+
+    // leaflet plugins With Artifactory
+    jsLib 'com.leafletjs:leaflet-coordinates:0.1.5@zip'
+    jsLib 'com.leafletjs:leaflet-draw:0.2.4@zip'
+    jsLib 'com.leafletjs:leaflet-label:20160718:dev@zip'
+    jsLib 'com.leafletjs:leaflet-loading:0.1.22@zip'
+    jsLib 'com.leafletjs:leaflet-marker-cluster:0.5.0@zip'
+    //    jsLib 'com.leafletjs:leaflet-measure:2.0.5@zip'
+    jsLib 'com.leafletjs:leaflet-mini-map:3.3.1@zip'
+    jsLib 'com.leafletjs:leaflet-nav-bar:1.0.0@zip'
+
+    // FIXME: Not used at this time
+    // jsLib 'com.leafletjs:leaflet-tile-layer:20160718:dev@zip'
+    // jsLib 'com.pouchdb:pouchdb:5.4.5@zip'
+
+}
+
+// GWT servlet dependency conflicts with Jasper
+configurations.jspCompile { exclude group:'com.google.gwt' }
+configure(configurations.findAll { it =~ 'jsp' }) {
+    // the transitive deps of gwt-user an gwt-dev must be forced so they sync with the
+    // compile configuration. Without this, the JSPs will compile against different
+    // versions, and also add the non-matching jars into the WAR artifact
+    resolutionStrategy {
+      force 'javax.validation:validation-api:1.0.0.GA'
+      force 'org.json:json:20090211'
+    }
+}
+
+task compileGwt(type: JavaExec) {
+    dependsOn 'processResources'
+    def outputDir = "${buildDir}/gwt/"
+    def moduleName = 'com.akimeka.web.MSATApplication'
+    ext.destinationDir = file("${outputDir}/${moduleName}")
+
+    inputs.files sourceSets.main.allSource
+    outputs.dir  destinationDir
+
+    main 'com.google.gwt.dev.Compiler'
+    args = [ moduleName, '-war', outputDir, ]
+    jvmArgs '-Xss1024k','-Dgwt.persistentunitcache=false'
+    maxHeapSize '384M'
+
+    classpath sourceSets.main.compileClasspath
+    classpath sourceSets.main.java.srcDirs
+    classpath sourceSets.main.output.resourcesDir
+}
+
+// The following task are combined to generate the final JS and GWT output for the MSAT
+// map front end.  The workflow for this build is as follows:
+//
+// 1. Library JS code is extracted (expandJsLibResources Task) and placed in to working
+//    dir under build/. We do not check this code into Perforce because it is unnecessary
+//    and harder to keep up to date.
+//
+// 2. The Google closure compiler is used to generate a Manifest.MF (manifestJs Task) file
+//    that contains a full listing of all JS sources (local and libraries) that are needed
+//    to run the application. Given the 100s of JS files from the libraries only a
+//    fraction of thes files are actually required by the application code. The order of
+//    the files is calculated by the compiler so JS code will execute without missing
+//    defines. This step is important because STRICT mode is required to limit the amount
+//    of JS files listed in the Manifest output.
+//
+// 3. The Akimeka sources code is scanned for errors using jshint (jsHint Task) tool.
+//    This checks the developers code for obvious errors that should be fixed before
+//    deployment.
+//
+// 4. The Google closure compiler is run a final time, except this time it is run with the
+//    'LOOSE' mode. All JS files given to the compiler in this pass will be minified and
+//    put into a single output file (Map-all.js). Again, unlike step 2, the compiler will
+//    not discard unknown JS code! This is critical because libraries like Leaflet.js do
+//    not have the necessary Google closure defines to prevent them from being removed
+//    when 'STRICT' mode is enabled.
+//
+// 5. The GWT output and minfied JS output is combined into the final WAR
+
+def JS_Dev = 'Map-dev.js'
+def JS_Min = 'Map-min.js'
+
+// Create file name '.empty' to be used in the following copy task. This prevents the
+// Gradle task from being skipped since no local files are provided as inputs to the task.
+task createEmptyFile {
+  File destFile = new File(temporaryDir,'.empty')
+  outputs.file destFile
+  doLast {
+    temporaryDir.mkdirs()
+    destFile.createNewFile()
+  }
+}
+
+// STEP 1: Create a working copy of all the third-party JSLib sources for processing
+task expandJsLibResources(type: Sync) {
+  inputs.files configurations.jsLib
+  into "${buildDir}/resources/js"
+  from createEmptyFile.outputs // force task to run
+  doFirst {
+    // extract JS libs
+    from (configurations.jsLib.collect{ zipTree(it) }) {
+      include '**/*.js'
+      include '**/*.css'
+      include '**/*.png'
+      include '**/*.svg'
+      include '**/*.py'
+    }
+  }
+}
+
+// The static resources included with the JS libs need to be merged into a single dir so
+// they can be added to the WAR.
+//
+// IMPORTANT: Make sure to add new CSS file references to LeafMap.jsp
+def JsLibResources = {
+  def js_source_dir = expandJsLibResources.destinationDir
+  into ('css/') {
+    // flatten CSS files into single directory
+    from { fileTree(js_source_dir).matching {
+        include 'leaflet.css'
+        include '**/dist/*.css'
+        include '**/Control.Loading.css'
+        include '**/Leaflet.NavBar.css'
+      }.files
+    }
+    // flatten images/ and img/ files into single dir
+    into ('images/') {
+      from { fileTree(js_source_dir).matching {
+          include 'images/*'
+          include '**/dist/images/*'
+        }.files
+      }
+    }
+    into ('img/') {
+      from { fileTree(js_source_dir).matching {
+          include '**Leaflet.NavBar-*/img/*'
+        }.files
+      }
+    }
+  }
+}
+
+// STEP 2: Scan the JS code using the closure compile and generate a Manifest.MF file of
+// all required JS sources.
+//
+// NOTE: we still need to add in the non-closure enabled JS in the final minification process
+task manifestJs(type: JavaExec) {
+  def destinationDir = file("${buildDir}/closure")
+  def destFile = new File( destinationDir, 'jsManifest.MF')
+  inputs.files expandJsLibResources.outputs
+  inputs.dir webAppDirName
+  outputs.files destFile
+  // disable console text output
+  standardOutput = new ByteArrayOutputStream()
+
+  // since closure is already a plugin on the classpath, we can use that
+  classpath = rootProject.buildscript.configurations.classpath
+  main = 'com.google.javascript.jscomp.CommandLineRunner'
+  args '--dependency_mode=STRICT',     // only interested in goog.required deps
+       '--output_manifest', relativePath(destFile),
+       '--js', "${expandJsLibResources.destinationDir}/closure*/**.js",
+       '--js', 'web/js',
+       '--entry_point=goog:LeafletMapImpl'
+  // destination dir must already exist
+  doFirst { destinationDir.mkdirs() }
+}
+
+// STEP 3: Replaces the builtin 'jshint' task as it does not correctly pickup source files
+task jsHint(type:com.eriwen.gradle.js.tasks.JsHintTask) {
+  source = fileTree("${webAppDirName}/js") {
+    // do not scan third-party libs
+    exclude 'jquery*.*'
+    exclude 'json2.js'
+    exclude 'sha1.js'
+    exclude 'usng.js'
+  }
+  ignoreExitCode = false
+}
+
+// STEP 4: Combine all JS source files into a minified version using the Manifest.MF
+// listing and the set of known static dependencies.
+minifyJs {
+  dependsOn jsHint
+  inputs.files manifestJs.outputs
+  inputs.property 'javascript_debug', dev_javascript_debug
+
+  // switch to enable developer features
+  def debug = dev_javascript_debug.toBoolean()
+
+  // use closure to delay resolution
+  def manifestJsFiles = { manifestJs.outputs.files.singleFile.collect { it } }
+
+  // leaflet map source, not detected by google closure
+  def js_source_dir = expandJsLibResources.destinationDir
+  def leafletJS = fileTree(js_source_dir) {
+    include '**/Control.MiniMap.js'
+    include '**/Control.Loading.js'
+    include '**/Leaflet.NavBar.js'
+    include '**/leaflet.label-src.js'
+    include '**/leaflet.markercluster-src.js'
+    include '**/leaflet.draw-src.js'
+    include '**/Leaflet.Coordinates-*.src.js'
+//    include '**/leaflet-measure.js'
+  }
+  // set the static Leaflet and Plugin files as default source; a closure must be added
+  // because all the goog.require closure files are not known until the manifestJS task
+  // output is generated.  WARN: Order is important, dependencies must be listed first !!
+  source = [new File(js_source_dir,'leaflet-src.js'), leafletJS]
+  doFirst {
+    source +=  files(manifestJsFiles())
+    // remove local JS files from the combined output for direct modifications
+    if (debug) {
+      def slash = /[\\\/]/    // match '/' or '\'
+      source = source.findAll { !(it.path =~ ['msat_portlet','web','js'].join(slash)) }
+    }
+  }
+
+  dest = new File("${buildDir}/closure", !debug ? JS_Min : JS_Dev)
+
+  closure {
+    compilationLevel = debug ? 'WHITESPACE_ONLY' : 'SIMPLE_OPTIMIZATIONS'
+    warningLevel = 'DEFAULT'
+    compilerOptions.with  {
+      prettyPrint = debug
+      languageIn = 'ECMASCRIPT5'
+    }
+  }
+}
+
+// STEP 5: Combine the minified JS and GWT outputs along with additional static JS files,
+// compiled Java classes and webapp dir contents.
+war {
+  includeEmptyDirs = false
+  from compileGwt.outputs
+  into('js/') { from minifyJs.outputs }
+  // add the external static JS lib files
+  configure JsLibResources
+  // exclude all static JS files except JQuery
+  fileTree("${webAppDir}/js")
+    .findAll { !(it.name =~ 'jquery-1.*.js')}
+    .each {
+      exclude "**/${it.name}"
+    }
+}
+
+// ===================================================
+// ECLIPSE: setup eclipse workspace and assembly
+
+def eclispeWebappDir = file("${buildDir}/eclipse/webapp")
+def jsBuildDir       = file("${buildDir}/eclipse/webapp/js")
+
+// create a working copy of the external JS resources
+task eclipseExtraJSResourcesDir(type: Sync) {
+  into eclispeWebappDir
+  configure JsLibResources
+  into('js/') { from minifyJs.outputs }
+}
+
+// add the compiled GWT outputs to the assembly
+eclipseWtp.dependsOn compileGwt, minifyJs, eclipseExtraJSResourcesDir
+eclipse.wtp.component {
+  resource sourcePath:relativePath(compileGwt.destinationDir.path), deployPath:'/'
+  resource sourcePath:relativePath(eclispeWebappDir.path), deployPath:'/'
+}

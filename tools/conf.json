@@ -1,0 +1,8 @@
+{
+  "source": {
+    "include": ["../leaf/", "../LeafletMapImpl.js"],
+    "exclude": ["libs", "resources", "tools"],
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  }
+}

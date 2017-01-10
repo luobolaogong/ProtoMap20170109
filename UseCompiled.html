@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <link rel="stylesheet" href="libs/ClosureLibs20160924/closure-library-20160822/closure/goog/demos/css/demo.css">
+    <link rel="stylesheet" href="libs/ClosureLibs20160924/closure-library-20160822/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="libs/ClosureLibs20160924/closure-library-20160822/closure/goog/css/menuitem.css">
+    <link rel="stylesheet" href="libs/ClosureLibs20160924/closure-library-20160822/closure/goog/css/menuseparator.css">
+    <link rel="stylesheet" href="libs/ClosureLibs20160924/closure-library-20160822/closure/goog/css/toolbar.css">
+
+    <link rel='stylesheet' href='libs/LeafletLibs20160924/Leaflet-0.7.7/leaflet.css' />
+    <link rel="stylesheet" href="libs/LeafletPlugins20160924/Leaflet.draw-0.2.4/dist/leaflet.draw.css" />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.markercluster-leaflet-0.7/dist/MarkerCluster.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.markercluster-leaflet-0.7/dist/MarkerCluster.Default.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet-MiniMap-3.3.1/dist/Control.MiniMap.min.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.loading-0.1.23/src/Control.Loading.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.NavBar-1.0.0/src/Leaflet.NavBar.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/leaflet-measure-2.0.5/dist/leaflet-measure.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.Coordinates-0.1.5/dist/Leaflet.Coordinates-0.1.5.css' />
+    <link rel='stylesheet' href='libs/LeafletPlugins20160924/Leaflet.label-master/dist/leaflet.label.css' />
+
+    <link rel='stylesheet' href='css/LeafMap.css' />
+
+    <script src='libs/usng.js'></script> <!-- this doesn't compile with closure compiler, because of "let" -->
+    <script src='build/Map-compiled-pretty-with-libs-plugs.js'></script> <!-- This should bring in goog/base.js -->
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+        }
+    </style>
+
+</head>
+<body onload='test()'>
+<div id='map'></div>
+<script>
+    function test() {
+        leaf.map = new leaf.Map();
+        var toolbar = new testGwtSim.Toolbar();
+        var resultsString = goog.json.serialize(testData.CalloutsData);
+        LeafletMapImpl.locateCoordinate('12.6869N, 100.8991E');
+        LeafletMapImpl.zoomToLocation(20.748003, -156.435573, 'Water Tank');
+        LeafletMapImpl.zoomToLocation(13.7563, 100.5018, 'Bangkok');
+        console.log('Done with test.  Leaving MsatLeaflet.html.script');
+    }
+</script>
+
+</body>
+</html>
