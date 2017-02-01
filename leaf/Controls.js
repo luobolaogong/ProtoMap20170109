@@ -8,6 +8,7 @@ goog.require('leaf.Legend');
 goog.require('leaf.Legends');
 //goog.require('leaf.SpatialFilter'); // nec for build in MSAT env?  Does not work outside of MSAT  Must have commented out
 goog.require('leaf.MeasureTool'); // nec for build in MSAT env?
+goog.require('leaf.MousePositionControl'); // nec for build in MSAT env?  New here in prototype
 
 /**
  * @classdesc The Controls class creates, places, and maintains a set of controls for the map.
@@ -27,6 +28,10 @@ goog.require('leaf.MeasureTool'); // nec for build in MSAT env?
  * @constructor
  */
 leaf.Controls = function(map) {
+  if (goog.DEBUG) {
+    console.log("Controls.js L.version: " + L.version);
+    console.log("Controls.js L.drawVersion: " + L.drawVersion);
+  }
   this.map = map; // What should we be using in this function, and anonymous?  map or this.map or leaf.map?
   var leafletMap = map.leafletMap;
   //
@@ -35,7 +40,7 @@ leaf.Controls = function(map) {
   var overviewLayer = map.layers.overviewLayer;
   if (goog.isDefAndNotNull(overviewLayer)) {
     this.miniMapControl = new L.Control.MiniMap(overviewLayer.leafletLayer, {
-      crs: leaf.Map.CRS, // not sure this helps
+      //crs: leaf.Map.CRS, // not sure this helps
       minimized: true,
       toggleDisplay: true,
       autoToggleDisplay: true, // Once minimize or expand button clicked, this turns off.
@@ -63,14 +68,10 @@ leaf.Controls = function(map) {
   L.drawLocal.edit.handlers.edit.tooltip.text = 'Drag handles to edit spatial filter';
   L.drawLocal.edit.handlers.remove.tooltip.text = 'Click on spatial filter to remove';
 
-  console.log("L.version: " + L.version);
-  console.log("L.drawVersion: " + L.drawVersion);
-
   var drawnShape = null;
   this.drawnItemsFeatureGroup = L.featureGroup(); // necessary if done in SpatialFilter?
-
-  map.spatialFilter.drawnItemsFeatureGroup = this.drawnItemsFeatureGroup;
   this.drawnItemsFeatureGroup.addTo(leafletMap); // without this, the shape goes away when release mouse as drawn
+  map.spatialFilter.drawnItemsFeatureGroup = this.drawnItemsFeatureGroup;
 
   this.spatialFilterControl = new L.Control.Draw({
     position: 'topleft',
@@ -184,13 +185,13 @@ leaf.Controls = function(map) {
     // console.log("Controls.js, draw:edited: Edited area: " + map.spatialFilter.size);
   });
 
-  leafletMap.on('draw:editmove', function (event) {
-    alert("Controls.js, draw:editmove, Draw editmove callback called.");
-  });
-
-  leafletMap.on('draw:editresize', function (event) {
-    alert("Controls.js, draw:editresize: Draw editedresize callback called.");
-  });
+  // leafletMap.on('draw:editmove', function (event) {
+  //   console.log("Controls.js, draw:editmove, Draw editmove callback called.");
+  // });
+  //
+  // leafletMap.on('draw:editresize', function (event) {
+  //   console.log("Controls.js, draw:editresize: Draw editedresize callback called.");
+  // });
 
   leafletMap.on('draw:deleted', function (event) { // after click on save for the deleted icon
     // console.log("Controls.js, draw:deleted:Draw deleted callback called.");
@@ -513,7 +514,19 @@ leaf.Controls = function(map) {
     prefix: "Lat,Lng, MGRS: ",
     separator: ", ",
     mgrsFormatter: function mgrsFormatter(lat, lng) {
-      return orgmymanateecommonusng.LLtoMGRS(lat, lng, 5);
+      var mgrsString = "";
+      try {
+        mgrsString = orgmymanateecommonusng.LLtoMGRS(lat, lng, 5);
+        //console.log("mgrsString: " + mgrsString);
+        if (goog.string.contains(mgrsString, 'NaN')) {
+          return " (polar)";
+        }
+      }
+      catch (e) {
+        //console.log("Caught exception when calling LLtoMGRS from Controls.js: " + e.toString());
+        return " (range)";
+      }
+      return mgrsString;
     }
   });
   this.mousePositionControl.addTo(leafletMap);

@@ -111,7 +111,8 @@ L.Control.Measure = L.Control.extend({
         dashArray: '6,3'
       }).addTo(this._layerPaint);
     } else {
-      this._layerPaintPathTemp.spliceLatLngs(0, 2, this._lastPoint, e.latlng);
+      //this._layerPaintPathTemp.spliceLatLngs(0, 2, this._lastPoint, e.latlng); // only works for Leaflet 0.7.7???
+      this._layerPaintPathTemp.getLatLngs().splice(0, 2, this._lastPoint, e.latlng); // substitute for Leaflet 1.0? not quite?
     }
 
     if(this._tooltip) {
@@ -222,7 +223,7 @@ L.Control.Measure = L.Control.extend({
     this._tooltip.setLatLng(position);
   },
 
-  _updateTooltipDistance: function(total, difference) {
+  _updateTooltipDistance: function(total, difference) { // this is different from the MSAT version
     var totalRound = this._round(total),
         differenceRound = this._round(difference);
 
@@ -289,7 +290,7 @@ leaf.MeasureTool.prototype.toggleMeasureTool = function() {
   }
 };
 
-leaf.MeasureTool.prototype.activate = function() {
+leaf.MeasureTool.prototype.activate = function() { // slightly different from what's in MSAT
   console.log("In MeasureTool.js.activate()");
   this.measureToolControl.addTo(this.map.leafletMap);
   this.isControllerActive = true;

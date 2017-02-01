@@ -101,7 +101,8 @@ leaf.SpatialFilter.prototype.activate = function() {
 leaf.SpatialFilter.prototype.deactivate = function() { // new
   console.log("In SpatialFilter.js.deactivate()");
   if (this.isControllerActive) {
-    this.spatialFilterControl.removeFrom(this.map.leafletMap); // should make control disappear, how about shape?
+    this.spatialFilterControl.remove(); // Works with new plugin? should make control disappear, how about shape?
+    //this.spatialFilterControl.removeFrom(this.map.leafletMap); // Works with new plugin? should make control disappear, how about shape?
   }
   this.removeDrawnShape();
   this.isControllerActive = false;
